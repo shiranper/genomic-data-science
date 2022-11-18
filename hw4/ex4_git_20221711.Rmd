@@ -1,6 +1,6 @@
 ---
 title: "ex4_git"
-author: "Shiran Peretz"
+author: "Shiran Peretz - 206298937"
 date: "2022-11-17"
 output: html_document
 ---
