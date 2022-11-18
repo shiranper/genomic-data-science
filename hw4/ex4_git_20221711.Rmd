@@ -1,0 +1,100 @@
+---
+title: "ex4_git"
+author: "Shiran Peretz"
+date: "2022-11-17"
+output: html_document
+---
+---
+title: "Exercise  4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Exploring the count tables
+
+Here, import an example count table and do some exploration of the expression data. 
+
+```{r exSetup1, eval=FALSE}
+counts_file <- system.file("extdata/rna-seq/SRP029880.raw_counts.tsv",
+                           package = "compGenomRData")
+coldata_file <- system.file("extdata/rna-seq/SRP029880.colData.tsv", 
+                            package = "compGenomRData")
+```
+
+1. Normalize the counts using the TPM approach.
+
+2. Plot a heatmap of the top 500 most variable genes. Compare with the heatmap obtained using the 100 most variable genes. Hint : use var() function to compute the variance.
+
+3. Re-do the heatmaps setting the `scale` argument to `none`, and `column`. Compare the results with `scale = 'row'`.
+
+4. Draw a correlation plot for the samples depicting the sample differences as 'ellipses', drawing only the upper end of the matrix, and order samples by hierarchical clustering results based on `average` linkage clustering method.
+```{r}
+library(compGenomRData)
+library(pheatmap)
+library(stats)
+library(corrplot)
+
+counts_file <- system.file("extdata/rna-seq/SRP029880.raw_counts.tsv",
+                           package = "compGenomRData")
+coldata_file <- system.file("extdata/rna-seq/SRP029880.colData.tsv", 
+                            package = "compGenomRData")
+
+##Question 1 - Normalize the counts using the TPM approach:
+# Create the counts_reads ad matrix:
+counts_reads <- as.matrix(read.table(counts_file, header = T, sep = '\t'))
+
+# Watch how the matrix looks like:
+summary(counts_reads[,1:3])
+
+# Create a vector with the length of the genes. (the "width" columns in the data matrix):
+geneLengths <- as.vector(subset(counts_reads, select = c(width)))
+
+# Create a variable with the data without the "width" columns:
+rpk <- apply(subset(counts_reads, select = c(-width)), 2,
+              function(x) x/(geneLengths/1000)) 
+    ## the "2" argument tells the apply() function to apply the cells in the matrix by columns. if I wanted by rows - I need to write "1" instead.
+
+#Normalize the Data by RPK (Using the sample size)
+tpm <- apply(rpk, 2, function(x) x / sum(as.numeric(x)) * 10^6)
+
+#Check the sample sizes of TPM. 
+colSums(tpm)
+
+##Question 2 - 2. Plot a heatmap of the top 500 most variable genes. Compare with the heatmap obtained using the 100 most variable genes. Hint : use var() function to compute the variance:
+# Making a "numeric" values that apply "var" argument on the data from "tpm" matrix, by rows.
+variances_reads <- apply(tpm, 1, var)
+
+#Select the 500 genes with the lowest var:
+selectedGenes <- names(variances_reads[order(variances_reads, decreasing = T)][1:500])
+
+#Create heatmap of the 500 selected genes:
+pheatmap(tpm[selectedGenes,], scale = 'row', show_rownames = FALSE)
+
+#Question 3 - Re-do the heatmaps setting the `scale` argument to `none`, and `column`. Compare the results with `scale = 'row'`:
+pheatmap(tpm[selectedGenes,], scale = 'none', show_rownames = FALSE)
+
+#Question 4 - Draw a correlation plot for the samples depicting the sample differences as 'ellipses', drawing only the upper end of the matrix, and order samples by hierarchical clustering results based on `average` linkage clustering method:
+
+#Creating a variable of correlated TPM data Matrix:
+correlationMatrix <- cor(tpm)
+
+#Creating a correlation plot:
+corrplot(correlationMatrix, order = 'hclust', addrect = 2, addCoef.col = 'white', number.cex = 0.7)
+```
+ 
+
+### Git and Github
+
+5. Open Github account, and install git if it required as instructed in the following link: https://github.com/llendway/github_for_collaboration/blob/master/github_for_collaboration.md
+
+6. Create a repository and commit and push the answers of this exercise through Rtudio (Please upload the answers to the exercises also to Moodle).
+
+7. Insert the link to your Github account here.
+
+######### Answers:
+
+7. the link to my git account: https://github.com/shiranper
+
